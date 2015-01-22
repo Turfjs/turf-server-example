@@ -19,7 +19,8 @@ app.get('/add', function(req, res) {
   request('https://www.mapbox.com/api/Location/' + ip, {
       json: true
   }, function(err, place) {
-    if (place.body &&
+    if (!err &&
+        place.body &&
         place.body.lat !== undefined &&
         place.body.lat !== 0) {
       var random_long_string = '';
