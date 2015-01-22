@@ -11,11 +11,6 @@ app.set('port', (process.env.PORT || 3000));
 app.enable('trust proxy');
 var points = { type: 'FeatureCollection', features: [] };
 
-points.features = points.features.concat(turf.random('points', 10).features);
-points.features.forEach(function(f) {
-    f.properties.speed = Math.random() * 10000;
-});
-
 app.get('/add', function(req, res) {
   var ip = (req.ip === '127.0.0.1') ? '199.188.195.78' : req.ip;
   if (req.ips) ip = req.ips[0];
