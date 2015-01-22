@@ -6,8 +6,9 @@ var turf = require('turf');
 var request = require('request');
 
 var rate = transfer({ output: false });
-app.set('port', (process.env.PORT || 3000));
 
+app.set('port', (process.env.PORT || 3000));
+app.enable('trust proxy');
 var points = { type: 'FeatureCollection', features: [] };
 
 points.features = points.features.concat(turf.random('points', 10).features);
@@ -17,6 +18,7 @@ points.features.forEach(function(f) {
 
 app.get('/add', function(req, res) {
   var ip = (req.ip === '127.0.0.1') ? '199.188.195.78' : req.ip;
+  if (req.ips) ip = req.ips[0];
   request('https://www.mapbox.com/api/Location/' + ip, {
       json: true
   }, function(err, place) {
@@ -47,6 +49,7 @@ app.get('/add', function(req, res) {
       });
       if (points.features.length > 1000) points.features.shift();
     } else {
+      console.log(err, place);
       res.end('done');
     }
   });
