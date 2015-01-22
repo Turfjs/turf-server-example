@@ -6,6 +6,7 @@ var turf = require('turf');
 var request = require('request');
 
 var rate = transfer({ output: false });
+app.set('port', (process.env.PORT || 3000));
 
 var points = { type: 'FeatureCollection', features: [] };
 
