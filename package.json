@@ -1,0 +1,27 @@
+{
+  "name": "turf-server-example",
+  "version": "1.0.0",
+  "description": "an example of using turf in a server context",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "turf",
+    "test",
+    "server",
+    "context"
+  ],
+  "author": "Tom MacWright",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.11.1",
+    "request": "^2.51.0",
+    "simple-statistics": "^0.9.0",
+    "transfer-rate": "^1.0.5",
+    "turf": "^1.3.2"
+  },
+  "devDependencies": {
+    "browserify": "^8.1.1"
+  }
+}

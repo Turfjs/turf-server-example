@@ -1,0 +1,7 @@
+{
+  "name": "turf example",
+  "description": "A bandwidth meter test example using turf",
+  "repository": "https://github.com/mapbox/turf-server-sample",
+  "logo": "http://node-js-sample.herokuapp.com/node.svg",
+  "keywords": ["node", "express", "static", "turf"]
+}
