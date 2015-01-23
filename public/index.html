@@ -2,9 +2,10 @@
 <html>
 <head>
 <meta charset=utf-8 />
-<title>turf bandwidth example</title>
+<title>Turfjs Bandwidth Example</title>
 <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.js'></script>
 <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.5/mapbox.css' rel='stylesheet' />
+<link href='https://www.mapbox.com/base/latest/base.css' rel='stylesheet' />
 <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 <style>
 #map {
@@ -18,6 +19,22 @@
 </head>
 <body>
 <div id='map'></div>
+<div class='pin-bottomleft col5 fill-white keyline-top keyline-right'>
+    <div class='pad2x pad1y fill-darken0'>
+        <a href='https://github.com/mapbox/turf-server-example' class='icon github'>Clone on Github &amp; Run on Heroku</a>
+    </div>
+    <div class='pad2'>
+        <h3>Turfjs Server Example</h3>
+        <div class='prose'>
+            <p>This is an example of using <a href='http://turfjs.org/'>Turf</a> in a
+            server context. Turf is loaded in a <a href='http://nodejs.org/'>node.js</a>
+            app built with <a href='http://expressjs.com/'>express</a>, and
+            calculates a <a href='http://en.wikipedia.org/wiki/Triangulated_irregular_network'>triangulated irregular network</a>
+            of geolocated network speeds around the globe with <a href='http://turfjs.org/static/docs/tin.html'>turf.tin</a>
+            </p>
+        </div>
+    </div>
+</div>
 <script src='bundle.js'></script>
 </body>
 </html>

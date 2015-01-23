@@ -4,7 +4,7 @@
   "description": "an example of using turf in a server context",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "watchify public/index.js -o public/bundle.js & node index.js"
   },
   "keywords": [
     "turf",
@@ -22,6 +22,7 @@
     "turf": "^1.3.2"
   },
   "devDependencies": {
-    "browserify": "^8.1.1"
+    "browserify": "^8.1.1",
+    "watchify": "^2.2.1"
   }
 }
