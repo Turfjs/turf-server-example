@@ -50250,6 +50250,11 @@ module.exports = function(arr, obj){
 },{}],"/Users/tmcw/src/turf-server-example/public/index.js":[function(require,module,exports){
 var request = require('request');
 
+if (window.location.search) {
+    var overlay = document.getElementById('overlay');
+    overlay.parentNode.removeChild(overlay);
+}
+
 // Add the user to the map and get their current
 // location
 request(location.href + 'add', { json: true }, function(err, res, body) {
