@@ -6,7 +6,8 @@ request(location.href + 'add', { json: true }, function(err, res, body) {
     L.mapbox.accessToken = 'pk.eyJ1IjoidG1jdyIsImEiOiJIZmRUQjRBIn0.lRARalfaGHnPdRcc-7QZYQ';
     // Create a map in the div #map
     var map = L.mapbox.map('map', 'tmcw.l12c66f2', {
-        maxZoom: 6
+        maxZoom: 6,
+        scrollWheelZoom: false
     });
 
     // Zoom into the current user

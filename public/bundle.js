@@ -4625,7 +4625,7 @@ exports.contentType = function (type) {
 }
 
 },{"mime-db":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/form-data/node_modules/mime-types/node_modules/mime-db/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/form-data/node_modules/mime-types/node_modules/mime-db/db.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
   "application/1d-interleaved-parityfec": {
     "source": "iana"
   },
@@ -12127,13 +12127,1429 @@ exports.unauthorized = function (message) {
 }).call(this,"/node_modules/request/node_modules/hawk/lib")
 },{"boom":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js","hoek":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js","sntp":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/sntp/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/sntp/index.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/http-signature/lib/index.js":[function(require,module,exports){
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/lib/index.js":[function(require,module,exports){
+// Load modules
+
+var Http = require('http');
+var NodeUtil = require('util');
+var Hoek = require('hoek');
+
+
+// Declare internals
+
+var internals = {};
+
+
+exports = module.exports = internals.Boom = function (/* (new Error) or (code, message) */) {
+
+    var self = this;
+
+    Hoek.assert(this.constructor === internals.Boom, 'Error must be instantiated using new');
+
+    Error.call(this);
+    this.isBoom = true;
+
+    this.response = {
+        code: 0,
+        payload: {},
+        headers: {}
+        // type: 'content-type'
+    };
+
+    if (arguments[0] instanceof Error) {
+
+        // Error
+
+        var error = arguments[0];
+
+        this.data = error;
+        this.response.code = error.code || 500;
+        if (error.message) {
+            this.message = error.message;
+        }
+    }
+    else {
+
+        // code, message
+
+        var code = arguments[0];
+        var message = arguments[1];
+
+        Hoek.assert(!isNaN(parseFloat(code)) && isFinite(code) && code >= 400, 'First argument must be a number (400+)');
+
+        this.response.code = code;
+        if (message) {
+            this.message = message;
+        }
+    }
+
+    // Response format
+
+    this.reformat();
+
+    return this;
+};
+
+NodeUtil.inherits(internals.Boom, Error);
+
+
+internals.Boom.prototype.reformat = function () {
+
+    this.response.payload.code = this.response.code;
+    this.response.payload.error = Http.STATUS_CODES[this.response.code] || 'Unknown';
+    if (this.message) {
+        this.response.payload.message = Hoek.escapeHtml(this.message);         // Prevent XSS from error message
+    }
+};
+
+
+// Utilities
+
+internals.Boom.badRequest = function (message) {
+
+    return new internals.Boom(400, message);
+};
+
+
+internals.Boom.unauthorized = function (message, scheme, attributes) {          // Or function (message, wwwAuthenticate[])
+
+    var err = new internals.Boom(401, message);
+
+    if (!scheme) {
+        return err;
+    }
+
+    var wwwAuthenticate = '';
+
+    if (typeof scheme === 'string') {
+
+        // function (message, scheme, attributes)
+
+        wwwAuthenticate = scheme;
+        if (attributes) {
+            var names = Object.keys(attributes);
+            for (var i = 0, il = names.length; i < il; ++i) {
+                if (i) {
+                    wwwAuthenticate += ',';
+                }
+
+                var value = attributes[names[i]];
+                if (value === null ||
+                    value === undefined) {              // Value can be zero
+
+                    value = '';
+                }
+                wwwAuthenticate += ' ' + names[i] + '="' + Hoek.escapeHeaderAttribute(value.toString()) + '"';
+            }
+        }
+
+        if (message) {
+            if (attributes) {
+                wwwAuthenticate += ',';
+            }
+            wwwAuthenticate += ' error="' + Hoek.escapeHeaderAttribute(message) + '"';
+        }
+        else {
+            err.isMissing = true;
+        }
+    }
+    else {
+
+        // function (message, wwwAuthenticate[])
+
+        var wwwArray = scheme;
+        for (var i = 0, il = wwwArray.length; i < il; ++i) {
+            if (i) {
+                wwwAuthenticate += ', ';
+            }
+
+            wwwAuthenticate += wwwArray[i];
+        }
+    }
+
+    err.response.headers['WWW-Authenticate'] = wwwAuthenticate;
+
+    return err;
+};
+
+
+internals.Boom.clientTimeout = function (message) {
+
+    return new internals.Boom(408, message);
+};
+
+
+internals.Boom.serverTimeout = function (message) {
+
+    return new internals.Boom(503, message);
+};
+
+
+internals.Boom.forbidden = function (message) {
+
+    return new internals.Boom(403, message);
+};
+
+
+internals.Boom.notFound = function (message) {
+
+    return new internals.Boom(404, message);
+};
+
+
+internals.Boom.internal = function (message, data) {
+
+    var err = new internals.Boom(500, message);
+
+    if (data && data.stack) {
+        err.trace = data.stack.split('\n');
+        err.outterTrace = Hoek.displayStack(1);
+    }
+    else {
+        err.trace = Hoek.displayStack(1);
+    }
+
+    err.data = data;
+    err.response.payload.message = 'An internal server error occurred';                     // Hide actual error from user
+
+    return err;
+};
+
+
+internals.Boom.passThrough = function (code, payload, contentType, headers) {
+
+    var err = new internals.Boom(500, 'Pass-through');                                      // 500 code is only used to initialize
+
+    err.data = {
+        code: code,
+        payload: payload,
+        type: contentType
+    };
+
+    err.response.code = code;
+    err.response.type = contentType;
+    err.response.headers = headers;
+    err.response.payload = payload;
+
+    return err;
+};
+
+
+
+},{"hoek":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js","http":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/http-browserify/index.js","util":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/util/util.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/lib/index.js":[function(require,module,exports){
+// Load modules
+
+var Crypto = require('crypto');
+var Boom = require('boom');
+
+
+// Declare internals
+
+var internals = {};
+
+
+// Generate a cryptographically strong pseudo-random data
+
+exports.randomString = function (size) {
+
+    var buffer = exports.randomBits((size + 1) * 6);
+    if (buffer instanceof Error) {
+        return buffer;
+    }
+
+    var string = buffer.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/\=/g, '');
+    return string.slice(0, size);
+};
+
+
+exports.randomBits = function (bits) {
+
+    if (!bits ||
+        bits < 0) {
+
+        return Boom.internal('Invalid random bits count');
+    }
+
+    var bytes = Math.ceil(bits / 8);
+    try {
+        return Crypto.randomBytes(bytes);
+    }
+    catch (err) {
+        return Boom.internal('Failed generating random bits: ' + err.message);
+    }
+};
+
+
+// Compare two strings using fixed time algorithm (to prevent time-based analysis of MAC digest match)
+
+exports.fixedTimeComparison = function (a, b) {
+
+    if (typeof a !== 'string' ||
+        typeof b !== 'string') {
+
+        return false;
+    }
+
+    var mismatch = (a.length === b.length ? 0 : 1);
+    if (mismatch) {
+        b = a;
+    }
+
+    for (var i = 0, il = a.length; i < il; ++i) {
+        var ac = a.charCodeAt(i);
+        var bc = b.charCodeAt(i);
+        mismatch += (ac === bc ? 0 : 1);
+    }
+
+    return (mismatch === 0);
+};
+
+
+
+},{"boom":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js","crypto":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/lib/escape.js":[function(require,module,exports){
+(function (Buffer){
+// Declare internals
+
+var internals = {};
+
+
+exports.escapeJavaScript = function (input) {
+
+    if (!input) {
+        return '';
+    }
+
+    var escaped = '';
+
+    for (var i = 0, il = input.length; i < il; ++i) {
+
+        var charCode = input.charCodeAt(i);
+
+        if (internals.isSafe(charCode)) {
+            escaped += input[i];
+        }
+        else {
+            escaped += internals.escapeJavaScriptChar(charCode);
+        }
+    }
+
+    return escaped;
+};
+
+
+exports.escapeHtml = function (input) {
+
+    if (!input) {
+        return '';
+    }
+
+    var escaped = '';
+
+    for (var i = 0, il = input.length; i < il; ++i) {
+
+        var charCode = input.charCodeAt(i);
+
+        if (internals.isSafe(charCode)) {
+            escaped += input[i];
+        }
+        else {
+            escaped += internals.escapeHtmlChar(charCode);
+        }
+    }
+
+    return escaped;
+};
+
+
+internals.escapeJavaScriptChar = function (charCode) {
+
+    if (charCode >= 256) {
+        return '\\u' + internals.padLeft('' + charCode, 4);
+    }
+
+    var hexValue = new Buffer(String.fromCharCode(charCode), 'ascii').toString('hex');
+    return '\\x' + internals.padLeft(hexValue, 2);
+};
+
+
+internals.escapeHtmlChar = function (charCode) {
+
+    var namedEscape = internals.namedHtml[charCode];
+    if (typeof namedEscape !== 'undefined') {
+        return namedEscape;
+    }
+
+    if (charCode >= 256) {
+        return '&#' + charCode + ';';
+    }
+
+    var hexValue = new Buffer(String.fromCharCode(charCode), 'ascii').toString('hex');
+    return '&#x' + internals.padLeft(hexValue, 2) + ';';
+};
+
+
+internals.padLeft = function (str, len) {
+
+    while (str.length < len) {
+        str = '0' + str;
+    }
+
+    return str;
+};
+
+
+internals.isSafe = function (charCode) {
+
+    return (typeof internals.safeCharCodes[charCode] !== 'undefined');
+};
+
+
+internals.namedHtml = {
+    '38': '&amp;',
+    '60': '&lt;',
+    '62': '&gt;',
+    '34': '&quot;',
+    '160': '&nbsp;',
+    '162': '&cent;',
+    '163': '&pound;',
+    '164': '&curren;',
+    '169': '&copy;',
+    '174': '&reg;'
+};
+
+
+internals.safeCharCodes = (function () {
+
+    var safe = {};
+
+    for (var i = 32; i < 123; ++i) {
+
+        if ((i >= 97 && i <= 122) ||         // a-z
+            (i >= 65 && i <= 90) ||          // A-Z
+            (i >= 48 && i <= 57) ||          // 0-9
+            i === 32 ||                      // space
+            i === 46 ||                      // .
+            i === 44 ||                      // ,
+            i === 45 ||                      // -
+            i === 58 ||                      // :
+            i === 95) {                      // _
+
+            safe[i] = null;
+        }
+    }
+
+    return safe;
+}());
+}).call(this,require("buffer").Buffer)
+},{"buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/lib/index.js":[function(require,module,exports){
+(function (process,Buffer){
+// Load modules
+
+var Fs = require('fs');
+var Escape = require('./escape');
+
+
+// Declare internals
+
+var internals = {};
+
+
+// Clone object or array
+
+exports.clone = function (obj, seen) {
+
+    if (typeof obj !== 'object' ||
+        obj === null) {
+
+        return obj;
+    }
+
+    seen = seen || { orig: [], copy: [] };
+
+    var lookup = seen.orig.indexOf(obj);
+    if (lookup !== -1) {
+        return seen.copy[lookup];
+    }
+
+    var newObj = (obj instanceof Array) ? [] : {};
+
+    seen.orig.push(obj);
+    seen.copy.push(newObj);
+
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            if (obj[i] instanceof Buffer) {
+                newObj[i] = new Buffer(obj[i]);
+            }
+            else if (obj[i] instanceof Date) {
+                newObj[i] = new Date(obj[i].getTime());
+            }
+            else if (obj[i] instanceof RegExp) {
+                var flags = '' + (obj[i].global ? 'g' : '') + (obj[i].ignoreCase ? 'i' : '') + (obj[i].multiline ? 'm' : '');
+                newObj[i] = new RegExp(obj[i].source, flags);
+            }
+            else {
+                newObj[i] = exports.clone(obj[i], seen);
+            }
+        }
+    }
+
+    return newObj;
+};
+
+
+// Merge all the properties of source into target, source wins in conflic, and by default null and undefined from source are applied
+
+exports.merge = function (target, source, isNullOverride /* = true */, isMergeArrays /* = true */) {
+
+    exports.assert(target && typeof target == 'object', 'Invalid target value: must be an object');
+    exports.assert(source === null || source === undefined || typeof source === 'object', 'Invalid source value: must be null, undefined, or an object');
+
+    if (!source) {
+        return target;
+    }
+
+    if (source instanceof Array) {
+        exports.assert(target instanceof Array, 'Cannot merge array onto an object');
+        if (isMergeArrays === false) {                                                  // isMergeArrays defaults to true
+            target.length = 0;                                                          // Must not change target assignment
+        }
+
+        for (var i = 0, il = source.length; i < il; ++i) {
+            target.push(source[i]);
+        }
+
+        return target;
+    }
+
+    var keys = Object.keys(source);
+    for (var k = 0, kl = keys.length; k < kl; ++k) {
+        var key = keys[k];
+        var value = source[key];
+        if (value &&
+            typeof value === 'object') {
+
+            if (!target[key] ||
+                typeof target[key] !== 'object') {
+
+                target[key] = exports.clone(value);
+            }
+            else {
+                exports.merge(target[key], source[key], isNullOverride, isMergeArrays);
+            }
+        }
+        else {
+            if (value !== null && value !== undefined) {            // Explicit to preserve empty strings
+                target[key] = value;
+            }
+            else if (isNullOverride !== false) {                    // Defaults to true
+                target[key] = value;
+            }
+        }
+    }
+
+    return target;
+};
+
+
+// Apply options to a copy of the defaults
+
+exports.applyToDefaults = function (defaults, options) {
+
+    exports.assert(defaults && typeof defaults == 'object', 'Invalid defaults value: must be an object');
+    exports.assert(!options || options === true || typeof options === 'object', 'Invalid options value: must be true, falsy or an object');
+
+    if (!options) {                                                 // If no options, return null
+        return null;
+    }
+
+    var copy = exports.clone(defaults);
+
+    if (options === true) {                                         // If options is set to true, use defaults
+        return copy;
+    }
+
+    return exports.merge(copy, options, false, false);
+};
+
+
+// Remove duplicate items from array
+
+exports.unique = function (array, key) {
+
+    var index = {};
+    var result = [];
+
+    for (var i = 0, il = array.length; i < il; ++i) {
+        var id = (key ? array[i][key] : array[i]);
+        if (index[id] !== true) {
+
+            result.push(array[i]);
+            index[id] = true;
+        }
+    }
+
+    return result;
+};
+
+
+// Convert array into object
+
+exports.mapToObject = function (array, key) {
+
+    if (!array) {
+        return null;
+    }
+
+    var obj = {};
+    for (var i = 0, il = array.length; i < il; ++i) {
+        if (key) {
+            if (array[i][key]) {
+                obj[array[i][key]] = true;
+            }
+        }
+        else {
+            obj[array[i]] = true;
+        }
+    }
+
+    return obj;
+};
+
+
+// Find the common unique items in two arrays
+
+exports.intersect = function (array1, array2, justFirst) {
+
+    if (!array1 || !array2) {
+        return [];
+    }
+
+    var common = [];
+    var hash = (array1 instanceof Array ? exports.mapToObject(array1) : array1);
+    var found = {};
+    for (var i = 0, il = array2.length; i < il; ++i) {
+        if (hash[array2[i]] && !found[array2[i]]) {
+            if (justFirst) {
+                return array2[i];
+            }
+
+            common.push(array2[i]);
+            found[array2[i]] = true;
+        }
+    }
+
+    return (justFirst ? null : common);
+};
+
+
+// Find which keys are present
+
+exports.matchKeys = function (obj, keys) {
+
+    var matched = [];
+    for (var i = 0, il = keys.length; i < il; ++i) {
+        if (obj.hasOwnProperty(keys[i])) {
+            matched.push(keys[i]);
+        }
+    }
+    return matched;
+};
+
+
+// Flatten array
+
+exports.flatten = function (array, target) {
+
+    var result = target || [];
+
+    for (var i = 0, il = array.length; i < il; ++i) {
+        if (Array.isArray(array[i])) {
+            exports.flatten(array[i], result);
+        }
+        else {
+            result.push(array[i]);
+        }
+    }
+
+    return result;
+};
+
+
+// Remove keys
+
+exports.removeKeys = function (object, keys) {
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+        delete object[keys[i]];
+    }
+};
+
+
+// Convert an object key chain string ('a.b.c') to reference (object[a][b][c])
+
+exports.reach = function (obj, chain) {
+
+    var path = chain.split('.');
+    var ref = obj;
+    for (var i = 0, il = path.length; i < il; ++i) {
+        if (ref) {
+            ref = ref[path[i]];
+        }
+    }
+
+    return ref;
+};
+
+
+// Inherits a selected set of methods from an object, wrapping functions in asynchronous syntax and catching errors
+
+exports.inheritAsync = function (self, obj, keys) {
+
+    keys = keys || null;
+
+    for (var i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            if (keys instanceof Array &&
+                keys.indexOf(i) < 0) {
+
+                continue;
+            }
+
+            self.prototype[i] = (function (fn) {
+
+                return function (next) {
+
+                    var result = null;
+                    try {
+                        result = fn();
+                    }
+                    catch (err) {
+                        return next(err);
+                    }
+
+                    return next(null, result);
+                };
+            })(obj[i]);
+        }
+    }
+};
+
+
+exports.formatStack = function (stack) {
+
+    var trace = [];
+    for (var i = 0, il = stack.length; i < il; ++i) {
+        var item = stack[i];
+        trace.push([item.getFileName(), item.getLineNumber(), item.getColumnNumber(), item.getFunctionName(), item.isConstructor()]);
+    }
+
+    return trace;
+};
+
+
+exports.formatTrace = function (trace) {
+
+    var display = [];
+
+    for (var i = 0, il = trace.length; i < il; ++i) {
+        var row = trace[i];
+        display.push((row[4] ? 'new ' : '') + row[3] + ' (' + row[0] + ':' + row[1] + ':' + row[2] + ')');
+    }
+
+    return display;
+};
+
+
+exports.callStack = function (slice) {
+
+    // http://code.google.com/p/v8/wiki/JavaScriptStackTraceApi
+
+    var v8 = Error.prepareStackTrace;
+    Error.prepareStackTrace = function (err, stack) {
+
+        return stack;
+    };
+
+    var capture = {};
+    Error.captureStackTrace(capture, arguments.callee);
+    var stack = capture.stack;
+
+    Error.prepareStackTrace = v8;
+
+    var trace = exports.formatStack(stack);
+
+    if (slice) {
+        return trace.slice(slice);
+    }
+
+    return trace;
+};
+
+
+exports.displayStack = function (slice) {
+
+    var trace = exports.callStack(slice === undefined ? 1 : slice + 1);
+
+    return exports.formatTrace(trace);
+};
+
+
+exports.abortThrow = false;
+
+
+exports.abort = function (message, hideStack) {
+
+    if (process.env.NODE_ENV === 'test' || exports.abortThrow === true) {
+        throw new Error(message || 'Unknown error');
+    }
+
+    var stack = '';
+    if (!hideStack) {
+        stack = exports.displayStack(1).join('\n\t');
+    }
+    console.log('ABORT: ' + message + '\n\t' + stack);
+    process.exit(1);
+};
+
+
+exports.assert = function (condition /*, msg1, msg2, msg3 */) {
+
+    if (condition) {
+        return;
+    }
+
+    var msgs = Array.prototype.slice.call(arguments, 1);
+    msgs = msgs.map(function (msg) {
+
+        return typeof msg === 'string' ? msg : msg instanceof Error ? msg.message : JSON.stringify(msg);
+    });
+    throw new Error(msgs.join(' ') || 'Unknown error');
+};
+
+
+exports.loadDirModules = function (path, excludeFiles, target) {      // target(filename, name, capName)
+
+    var exclude = {};
+    for (var i = 0, il = excludeFiles.length; i < il; ++i) {
+        exclude[excludeFiles[i] + '.js'] = true;
+    }
+
+    var files = Fs.readdirSync(path);
+    for (i = 0, il = files.length; i < il; ++i) {
+        var filename = files[i];
+        if (/\.js$/.test(filename) &&
+            !exclude[filename]) {
+
+            var name = filename.substr(0, filename.lastIndexOf('.'));
+            var capName = name.charAt(0).toUpperCase() + name.substr(1).toLowerCase();
+
+            if (typeof target !== 'function') {
+                target[capName] = require(path + '/' + name);
+            }
+            else {
+                target(path + '/' + name, name, capName);
+            }
+        }
+    }
+};
+
+
+exports.rename = function (obj, from, to) {
+
+    obj[to] = obj[from];
+    delete obj[from];
+};
+
+
+exports.Timer = function () {
+
+    this.reset();
+};
+
+
+exports.Timer.prototype.reset = function () {
+
+    this.ts = Date.now();
+};
+
+
+exports.Timer.prototype.elapsed = function () {
+
+    return Date.now() - this.ts;
+};
+
+
+// Load and parse package.json process root or given directory
+
+exports.loadPackage = function (dir) {
+
+    var result = {};
+    var filepath = (dir || process.env.PWD) + '/package.json';
+    if (Fs.existsSync(filepath)) {
+        try {
+            result = JSON.parse(Fs.readFileSync(filepath));
+        }
+        catch (e) { }
+    }
+
+    return result;
+};
+
+
+// Escape string for Regex construction
+
+exports.escapeRegex = function (string) {
+
+    // Escape ^$.*+-?=!:|\/()[]{},
+    return string.replace(/[\^\$\.\*\+\-\?\=\!\:\|\\\/\(\)\[\]\{\}\,]/g, '\\$&');
+};
+
+
+// Return an error as first argument of a callback
+
+exports.toss = function (condition /*, [message], next */) {
+
+    var message = (arguments.length === 3 ? arguments[1] : '');
+    var next = (arguments.length === 3 ? arguments[2] : arguments[1]);
+
+    var err = (message instanceof Error ? message : (message ? new Error(message) : (condition instanceof Error ? condition : new Error())));
+
+    if (condition instanceof Error ||
+        !condition) {
+
+        return next(err);
+    }
+};
+
+
+// Base64url (RFC 4648) encode
+
+exports.base64urlEncode = function (value) {
+
+    return (new Buffer(value, 'binary')).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/\=/g, '');
+};
+
+
+// Base64url (RFC 4648) decode
+
+exports.base64urlDecode = function (encoded) {
+
+    if (encoded &&
+        !encoded.match(/^[\w\-]*$/)) {
+
+        return new Error('Invalid character');
+    }
+
+    try {
+        return (new Buffer(encoded.replace(/-/g, '+').replace(/:/g, '/'), 'base64')).toString('binary');
+    }
+    catch (err) {
+        return err;
+    }
+};
+
+
+// Escape attribute value for use in HTTP header
+
+exports.escapeHeaderAttribute = function (attribute) {
+
+    // Allowed value characters: !#$%&'()*+,-./:;<=>?@[]^_`{|}~ and space, a-z, A-Z, 0-9, \, "
+
+    exports.assert(attribute.match(/^[ \w\!#\$%&'\(\)\*\+,\-\.\/\:;<\=>\?@\[\]\^`\{\|\}~\"\\]*$/), 'Bad attribute value (' + attribute + ')');
+
+    return attribute.replace(/\\/g, '\\\\').replace(/\"/g, '\\"');                             // Escape quotes and slash
+};
+
+
+exports.escapeHtml = function (string) {
+
+    return Escape.escapeHtml(string);
+};
+
+
+exports.escapeJavaScript = function (string) {
+
+    return Escape.escapeJavaScript(string);
+};
+
+
+/*
+var event = {
+    timestamp: now.getTime(),
+    tags: ['tag'],
+    data: { some: 'data' }
+};
+*/
+
+exports.consoleFunc = console.log;
+
+exports.printEvent = function (event) {
+
+    var pad = function (value) {
+
+        return (value < 10 ? '0' : '') + value;
+    };
+
+    var now = new Date(event.timestamp);
+    var timestring = (now.getYear() - 100).toString() +
+        pad(now.getMonth() + 1) +
+        pad(now.getDate()) +
+        '/' +
+        pad(now.getHours()) +
+        pad(now.getMinutes()) +
+        pad(now.getSeconds()) +
+        '.' +
+        now.getMilliseconds();
+
+    var data = event.data;
+    if (typeof event.data !== 'string') {
+        try {
+            data = JSON.stringify(event.data);
+        }
+        catch (e) {
+            data = 'JSON Error: ' + e.message;
+        }
+    }
+
+    var output = timestring + ', ' + event.tags[0] + ', ' + data;
+    exports.consoleFunc(output);
+};
+
+
+exports.nextTick = function (callback) {
+
+    return function () {
+
+        var args = arguments;
+        process.nextTick(function () {
+
+            callback.apply(null, args);
+        });
+    };
+};
+
+}).call(this,require('_process'),require("buffer").Buffer)
+},{"./escape":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/lib/escape.js","_process":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js","fs":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/lib/_empty.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/sntp/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/sntp/lib/index.js":[function(require,module,exports){
+(function (process,Buffer){
+// Load modules
+
+var Dgram = require('dgram');
+var Dns = require('dns');
+var Hoek = require('hoek');
+
+
+// Declare internals
+
+var internals = {};
+
+
+exports.time = function (options, callback) {
+
+    if (arguments.length !== 2) {
+        callback = arguments[0];
+        options = {};
+    }
+
+    var settings = Hoek.clone(options);
+    settings.host = settings.host || 'pool.ntp.org';
+    settings.port = settings.port || 123;
+    settings.resolveReference = settings.resolveReference || false;
+
+    // Declare variables used by callback
+
+    var timeoutId = 0;
+    var sent = 0;
+
+    // Ensure callback is only called once
+
+    var isFinished = false;
+    var finish = function (err, result) {
+
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = 0;
+        }
+
+        if (!isFinished) {
+            isFinished = true;
+            socket.removeAllListeners();
+            socket.close();
+            return callback(err, result);
+        }
+    };
+
+    // Create UDP socket
+
+    var socket = Dgram.createSocket('udp4');
+
+    socket.once('error', function (err) {
+
+        return finish(err);
+    });
+
+    // Listen to incoming messages
+
+    socket.on('message', function (buffer, rinfo) {
+
+        var received = Date.now();
+
+        var message = new internals.NtpMessage(buffer);
+        if (!message.isValid) {
+            return finish(new Error('Invalid server response'), message);
+        }
+
+        if (message.originateTimestamp !== sent) {
+            return finish(new Error('Wrong originate timestamp'), message);
+        }
+
+        // Timestamp Name          ID   When Generated
+        // ------------------------------------------------------------
+        // Originate Timestamp     T1   time request sent by client
+        // Receive Timestamp       T2   time request received by server
+        // Transmit Timestamp      T3   time reply sent by server
+        // Destination Timestamp   T4   time reply received by client
+        //
+        // The roundtrip delay d and system clock offset t are defined as:
+        //
+        // d = (T4 - T1) - (T3 - T2)     t = ((T2 - T1) + (T3 - T4)) / 2
+
+        var T1 = message.originateTimestamp;
+        var T2 = message.receiveTimestamp;
+        var T3 = message.transmitTimestamp;
+        var T4 = received;
+
+        message.d = (T4 - T1) - (T3 - T2);
+        message.t = ((T2 - T1) + (T3 - T4)) / 2;
+        message.receivedLocally = received;
+
+        if (!settings.resolveReference ||
+            message.stratum !== 'secondary') {
+
+            return finish(null, message);
+        }
+
+        // Resolve reference IP address
+
+        Dns.reverse(message.referenceId, function (err, domains) {
+
+            if (!err) {
+                message.referenceHost = domains[0];
+            }
+
+            return finish(null, message);
+        });
+    });
+
+    // Set timeout
+
+    if (settings.timeout) {
+        timeoutId = setTimeout(function () {
+
+            timeoutId = 0;
+            return finish(new Error('Timeout'));
+        }, settings.timeout);
+    }
+
+    // Construct NTP message
+
+    var message = new Buffer(48);
+    for (var i = 0; i < 48; i++) {                      // Zero message
+        message[i] = 0;
+    }
+
+    message[0] = (0 << 6) + (4 << 3) + (3 << 0)         // Set version number to 4 and Mode to 3 (client)
+    sent = Date.now();
+    internals.fromMsecs(sent, message, 40);               // Set transmit timestamp (returns as originate)
+
+    // Send NTP request
+
+    socket.send(message, 0, message.length, settings.port, settings.host, function (err, bytes) {
+
+        if (err ||
+            bytes !== 48) {
+
+            return finish(err || new Error('Could not send entire message'));
+        }
+    });
+};
+
+
+internals.NtpMessage = function (buffer) {
+
+    this.isValid = false;
+
+    // Validate
+
+    if (buffer.length !== 48) {
+        return;
+    }
+
+    // Leap indicator
+
+    var li = (buffer[0] >> 6);
+    switch (li) {
+        case 0: this.leapIndicator = 'no-warning'; break;
+        case 1: this.leapIndicator = 'last-minute-61'; break;
+        case 2: this.leapIndicator = 'last-minute-59'; break;
+        case 3: this.leapIndicator = 'alarm'; break;
+    }
+
+    // Version
+
+    var vn = ((buffer[0] & 0x38) >> 3);
+    this.version = vn;
+
+    // Mode
+
+    var mode = (buffer[0] & 0x7);
+    switch (mode) {
+        case 1: this.mode = 'symmetric-active'; break;
+        case 2: this.mode = 'symmetric-passive'; break;
+        case 3: this.mode = 'client'; break;
+        case 4: this.mode = 'server'; break;
+        case 5: this.mode = 'broadcast'; break;
+        case 0:
+        case 6:
+        case 7: this.mode = 'reserved'; break;
+    }
+
+    // Stratum
+
+    var stratum = buffer[1];
+    if (stratum === 0) {
+        this.stratum = 'death';
+    }
+    else if (stratum === 1) {
+        this.stratum = 'primary';
+    }
+    else if (stratum <= 15) {
+        this.stratum = 'secondary';
+    }
+    else {
+        this.stratum = 'reserved';
+    }
+
+    // Poll interval (msec)
+
+    this.pollInterval = Math.round(Math.pow(2, buffer[2])) * 1000;
+
+    // Precision (msecs)
+
+    this.precision = Math.pow(2, buffer[3]) * 1000;
+
+    // Root delay (msecs)
+
+    var rootDelay = 256 * (256 * (256 * buffer[4] + buffer[5]) + buffer[6]) + buffer[7];
+    this.rootDelay = 1000 * (rootDelay / 0x10000);
+
+    // Root dispersion (msecs)
+
+    this.rootDispersion = ((buffer[8] << 8) + buffer[9] + ((buffer[10] << 8) + buffer[11]) / Math.pow(2, 16)) * 1000;
+
+    // Reference identifier
+
+    this.referenceId = '';
+    switch (this.stratum) {
+        case 'death':
+        case 'primary':
+            this.referenceId = String.fromCharCode(buffer[12]) + String.fromCharCode(buffer[13]) + String.fromCharCode(buffer[14]) + String.fromCharCode(buffer[15]);
+            break;
+        case 'secondary':
+            this.referenceId = '' + buffer[12] + '.' + buffer[13] + '.' + buffer[14] + '.' + buffer[15];
+            break;
+    }
+
+    // Reference timestamp
+
+    this.referenceTimestamp = internals.toMsecs(buffer, 16);
+
+    // Originate timestamp
+
+    this.originateTimestamp = internals.toMsecs(buffer, 24);
+
+    // Receive timestamp
+
+    this.receiveTimestamp = internals.toMsecs(buffer, 32);
+
+    // Transmit timestamp
+
+    this.transmitTimestamp = internals.toMsecs(buffer, 40);
+
+    // Validate
+
+    if (this.version === 4 &&
+        this.stratum !== 'reserved' &&
+        this.mode === 'server' &&
+        this.originateTimestamp &&
+        this.receiveTimestamp &&
+        this.transmitTimestamp) {
+
+        this.isValid = true;
+    }
+
+    return this;
+};
+
+
+internals.toMsecs = function (buffer, offset) {
+
+    var seconds = 0;
+    var fraction = 0;
+
+    for (var i = 0; i < 4; ++i) {
+        seconds = (seconds * 256) + buffer[offset + i];
+    }
+
+    for (i = 4; i < 8; ++i) {
+        fraction = (fraction * 256) + buffer[offset + i];
+    }
+
+    return ((seconds - 2208988800 + (fraction / Math.pow(2, 32))) * 1000);
+};
+
+
+internals.fromMsecs = function (ts, buffer, offset) {
+
+    var seconds = Math.floor(ts / 1000) + 2208988800;
+    var fraction = Math.round((ts % 1000) / 1000 * Math.pow(2, 32));
+
+    buffer[offset + 0] = (seconds & 0xFF000000) >> 24;
+    buffer[offset + 1] = (seconds & 0x00FF0000) >> 16;
+    buffer[offset + 2] = (seconds & 0x0000FF00) >> 8;
+    buffer[offset + 3] = (seconds & 0x000000FF);
+
+    buffer[offset + 4] = (fraction & 0xFF000000) >> 24;
+    buffer[offset + 5] = (fraction & 0x00FF0000) >> 16;
+    buffer[offset + 6] = (fraction & 0x0000FF00) >> 8;
+    buffer[offset + 7] = (fraction & 0x000000FF);
+};
+
+
+// Offset singleton
+
+internals.last = {
+    offset: 0,
+    expires: 0,
+    host: '',
+    port: 0
+};
+
+
+exports.offset = function (options, callback) {
+
+    if (arguments.length !== 2) {
+        callback = arguments[0];
+        options = {};
+    }
+
+    var now = Date.now();
+    var clockSyncRefresh = options.clockSyncRefresh || 24 * 60 * 60 * 1000;                    // Daily
+
+    if (internals.last.offset &&
+        internals.last.host === options.host &&
+        internals.last.port === options.port &&
+        now < internals.last.expires) {
+
+        process.nextTick(function () {
+                
+            callback(null, internals.last.offset);
+        });
+
+        return;
+    }
+
+    exports.time(options, function (err, time) {
+
+        if (err) {
+            return callback(err, 0);
+        }
+
+        internals.last = {
+            offset: Math.round(time.t),
+            expires: now + clockSyncRefresh,
+            host: options.host,
+            port: options.port
+        };
+
+        return callback(null, internals.last.offset);
+    });
+};
+
+
+// Now singleton
+
+internals.now = {
+    intervalId: 0
+};
+
+
+exports.start = function (options, callback) {
+
+    if (arguments.length !== 2) {
+        callback = arguments[0];
+        options = {};
+    }
+
+    if (internals.now.intervalId) {
+        process.nextTick(function () {
+            
+            callback();
+        });
+        
+        return;
+    }
+
+    exports.offset(options, function (err, offset) {
+
+        internals.now.intervalId = setInterval(function () {
+
+            exports.offset(options, function () { });
+        }, options.clockSyncRefresh || 24 * 60 * 60 * 1000);                                // Daily
+
+        return callback();
+    });
+};
+
+
+exports.stop = function () {
+
+    if (!internals.now.intervalId) {
+        return;
+    }
+
+    clearInterval(internals.now.intervalId);
+    internals.now.intervalId = 0;
+};
+
+
+exports.isLive = function () {
+
+    return !!internals.now.intervalId;
+};
+
+
+exports.now = function () {
+
+    var now = Date.now();
+    if (!exports.isLive() ||
+        now >= internals.last.expires) {
+
+        return now;
+    }
+
+    return now + internals.last.offset;
+};
+
+
+}).call(this,require('_process'),require("buffer").Buffer)
+},{"_process":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/process/browser.js","buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js","dgram":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/lib/_empty.js","dns":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/lib/_empty.js","hoek":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/http-signature/lib/index.js":[function(require,module,exports){
 // Copyright 2011 Joyent, Inc.  All rights reserved.
 
 var parser = require('./parser');
@@ -16668,7 +18084,7 @@ function stringify(obj, fn, spaces, decycle) {
 stringify.getSerialize = getSerialize;
 
 },{}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/custom.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
   "text/jade": [
     "jade"
   ],
@@ -16774,7 +18190,7 @@ function define(json) {
 }
 
 },{"./custom.json":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/custom.json","./mime.json":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/mime.json","./node.json":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/node.json"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/mime.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
   "application/1d-interleaved-parityfec": [],
   "application/3gpp-ims+xml": [],
   "application/activemessage": [],
@@ -20093,7 +21509,7 @@ module.exports=module.exports=module.exports=module.exports=module.exports=modul
 }
 
 },{}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/node.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
   "text/vtt": [
     "vtt"
   ],
@@ -40406,7 +41822,7 @@ function shr64_lo(ah, al, num) {
 exports.shr64_lo = shr64_lo;
 
 },{"inherits":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/inherits/inherits_browser.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/package.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
   "name": "elliptic",
   "version": "1.0.1",
   "description": "EC cryptography",
@@ -40511,7 +41927,7 @@ module.exports = function evp(crypto, password, salt, keyLen) {
 };
 }).call(this,require("buffer").Buffer)
 },{"buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/aesid.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
+module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.2": "aes-128-cbc",
 "2.16.840.1.101.3.4.1.3": "aes-128-ofb",
 "2.16.840.1.101.3.4.1.4": "aes-128-cfb",
@@ -42865,7 +44281,45 @@ module.exports = function (crypto, exports) {
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js")
 },{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-hash/browser.js":[function(require,module,exports){
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/curve/base.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/base.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/base.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/base.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/curve/edwards.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/edwards.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/edwards.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/edwards.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/curve/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/curve/mont.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/mont.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/mont.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/mont.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/curve/short.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/short.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/short.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curve/short.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/curves.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curves.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curves.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/curves.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/ec/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/ec/key.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/key.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/key.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/key.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/ec/signature.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/signature.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/signature.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/ec/signature.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/hmac-drbg.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/hmac-drbg.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/hmac-drbg.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/hmac-drbg.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/lib/elliptic/utils.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/utils.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/utils.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/lib/elliptic/utils.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/brorand/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/hash.js/lib/hash.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/hash.js/lib/hash/common.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/common.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/common.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/common.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/hash.js/lib/hash/hmac.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/hmac.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/hmac.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/hmac.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/hash.js/lib/hash/ripemd.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/ripemd.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/ripemd.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/ripemd.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/hash.js/lib/hash/sha.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/sha.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/sha.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/sha.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/node_modules/hash.js/lib/hash/utils.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/utils.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/utils.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/hash.js/lib/hash/utils.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/elliptic/package.json":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/package.json")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/package.json":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/package.json"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-hash/browser.js":[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var createHash = require('sha.js')
@@ -44461,8 +45915,8 @@ module.exports = function (crypto, exports) {
 }
 }).call(this,require("buffer").Buffer)
 },{"./dh":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/dh.js","./generatePrime":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/generatePrime.js","./primes.json":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/primes.json","buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/bn.js/lib/bn.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/miller-rabin/lib/mr.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/miller-rabin/lib/mr.js":[function(require,module,exports){
 var bn = require('bn.js');
 var brorand = require('brorand');
 
@@ -44581,7 +46035,7 @@ MillerRabin.prototype.getDivisor = function getDivisor(n, k) {
 },{"bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js","brorand":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/miller-rabin/node_modules/brorand/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/miller-rabin/node_modules/brorand/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js")
 },{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/primes.json":[function(require,module,exports){
-module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
+module.exports={
     "modp1": {
         "gen": "02",
         "prime": "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a63a3620ffffffffffffffff"
@@ -44728,12 +46182,50 @@ function i2ops(c) {
 }
 }).call(this,require("buffer").Buffer)
 },{"buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/bn.js/lib/bn.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/browserify-rsa/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/browserify-rsa/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/index.js":[function(require,module,exports){
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/EVP_BytesToKey.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/EVP_BytesToKey.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/EVP_BytesToKey.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/EVP_BytesToKey.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/aesid.json":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/aesid.json")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/aesid.json":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/aesid.json"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/asn1.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/asn1.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/asn1.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/asn1.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/fixProc.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/fixProc.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/fixProc.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/fixProc.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/privateDecrypt.js":[function(require,module,exports){
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js-rfc3280/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js-rfc3280/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js-rfc3280/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js-rfc3280/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/api.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/api.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/api.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/api.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/buffer.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/buffer.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/buffer.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/buffer.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/node.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/node.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/node.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/node.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/reporter.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/reporter.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/reporter.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/base/reporter.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/der.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/der.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/der.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/der.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/constants/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/der.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/der.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/der.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/der.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/decoders/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/der.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/der.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/der.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/der.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/lib/asn1/encoders/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/asn1.js/node_modules/minimalistic-assert/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/node_modules/minimalistic-assert/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/node_modules/minimalistic-assert/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/asn1.js/node_modules/minimalistic-assert/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/node_modules/pemstrip/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/pemstrip/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/pemstrip/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/node_modules/pemstrip/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/privateDecrypt.js":[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var mgf = require('./mgf');
@@ -45870,7 +47362,9 @@ https.request = function (params, cb) {
 
 },{"http":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/http-browserify/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/inherits/inherits_browser.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/inherits/inherits_browser.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/inherits/inherits_browser.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/inherits/inherits_browser.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/path-browserify/index.js":[function(require,module,exports){
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/inherits/inherits_browser.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/inherits/inherits_browser.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/isarray/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/isarray/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/isarray/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/bl/node_modules/readable-stream/node_modules/isarray/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/path-browserify/index.js":[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -48762,7 +50256,8 @@ request(location.href + 'add', { json: true }, function(err, res, body) {
     L.mapbox.accessToken = 'pk.eyJ1IjoidG1jdyIsImEiOiJIZmRUQjRBIn0.lRARalfaGHnPdRcc-7QZYQ';
     // Create a map in the div #map
     var map = L.mapbox.map('map', 'tmcw.l12c66f2', {
-        maxZoom: 6
+        maxZoom: 6,
+        scrollWheelZoom: false
     });
 
     // Zoom into the current user
