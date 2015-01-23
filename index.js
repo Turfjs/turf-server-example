@@ -13,7 +13,7 @@ var points = { type: 'FeatureCollection', features: [] };
 
 app.get('/add', function(req, res) {
   var ip = (req.ip === '127.0.0.1') ? '199.188.195.78' : req.ip;
-  if (req.ips) ip = req.ips[0];
+  if (req.ips && req.ips.length) ip = req.ips[0];
   request('https://www.mapbox.com/api/Location/' + ip, {
       json: true
   }, function(err, place) {
@@ -21,14 +21,22 @@ app.get('/add', function(req, res) {
         place.body &&
         place.body.lat !== undefined &&
         place.body.lat !== 0) {
+      var i;
       var random_long_string = '';
-      for (var i = 0; i < 100; i++) random_long_string += Math.random();
+      for (i = 0; i < 100; i++) random_long_string += Math.random();
       var start = process.hrtime();
       res.send({
           random: random_long_string,
           self: place.body
       });
       rate(req, start);
+      for (i = 0; i < points.features.length; i++) {
+          if (points.features[i].geometry.coordinates[0] == place.body.lon &&
+              points.features[i].geometry.coordinates[1] == place.body.lat) {
+              // avoid duplicates
+              return;
+          }
+      }
       points.features.push({
           type: 'Feature',
           geometry: {
