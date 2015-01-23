@@ -4625,7 +4625,7 @@ exports.contentType = function (type) {
 }
 
 },{"mime-db":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/form-data/node_modules/mime-types/node_modules/mime-db/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/form-data/node_modules/mime-types/node_modules/mime-db/db.json":[function(require,module,exports){
-module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
   "application/1d-interleaved-parityfec": {
     "source": "iana"
   },
@@ -12130,10 +12130,10 @@ module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request
 },{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js")
 },{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/sntp/index.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/boom/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/http-signature/lib/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/cryptiles/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/sntp/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/hawk/node_modules/hoek/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/http-signature/lib/index.js":[function(require,module,exports){
 // Copyright 2011 Joyent, Inc.  All rights reserved.
 
 var parser = require('./parser');
@@ -16668,7 +16668,7 @@ function stringify(obj, fn, spaces, decycle) {
 stringify.getSerialize = getSerialize;
 
 },{}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/custom.json":[function(require,module,exports){
-module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
   "text/jade": [
     "jade"
   ],
@@ -16774,7 +16774,7 @@ function define(json) {
 }
 
 },{"./custom.json":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/custom.json","./mime.json":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/mime.json","./node.json":"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/node.json"}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/mime.json":[function(require,module,exports){
-module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
   "application/1d-interleaved-parityfec": [],
   "application/3gpp-ims+xml": [],
   "application/activemessage": [],
@@ -20093,7 +20093,7 @@ module.exports=module.exports={
 }
 
 },{}],"/Users/tmcw/src/turf-server-example/node_modules/request/node_modules/mime-types/lib/node.json":[function(require,module,exports){
-module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
   "text/vtt": [
     "vtt"
   ],
@@ -40406,7 +40406,7 @@ function shr64_lo(ah, al, num) {
 exports.shr64_lo = shr64_lo;
 
 },{"inherits":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/inherits/inherits_browser.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/package.json":[function(require,module,exports){
-module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
   "name": "elliptic",
   "version": "1.0.1",
   "description": "EC cryptography",
@@ -40511,7 +40511,7 @@ module.exports = function evp(crypto, password, salt, keyLen) {
 };
 }).call(this,require("buffer").Buffer)
 },{"buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/aesid.json":[function(require,module,exports){
-module.exports=module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.2": "aes-128-cbc",
 "2.16.840.1.101.3.4.1.3": "aes-128-ofb",
 "2.16.840.1.101.3.4.1.4": "aes-128-cfb",
@@ -44581,7 +44581,7 @@ MillerRabin.prototype.getDivisor = function getDivisor(n, k) {
 },{"bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js","brorand":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/miller-rabin/node_modules/brorand/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/miller-rabin/node_modules/brorand/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js")
 },{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/elliptic/node_modules/brorand/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/primes.json":[function(require,module,exports){
-module.exports=module.exports={
+module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports=module.exports={
     "modp1": {
         "gen": "02",
         "prime": "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a63a3620ffffffffffffffff"
@@ -44728,8 +44728,8 @@ function i2ops(c) {
 }
 }).call(this,require("buffer").Buffer)
 },{"buffer":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/buffer/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/bn.js/lib/bn.js":[function(require,module,exports){
-module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/bn.js/lib/bn.js")
-},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/create-ecdh/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/browserify-rsa/index.js":[function(require,module,exports){
+module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js")
+},{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/diffie-hellman/node_modules/bn.js/lib/bn.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/browserify-rsa/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js")
 },{"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js":"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/browserify-rsa/index.js"}],"/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/public-encrypt/node_modules/parse-asn1/index.js":[function(require,module,exports){
 module.exports=require("/Users/tmcw/src/turf-server-example/node_modules/watchify/node_modules/browserify/node_modules/crypto-browserify/node_modules/browserify-sign/node_modules/parse-asn1/index.js")
@@ -48805,17 +48805,6 @@ request(basePath + 'add', { json: true }, function(err, res, body) {
     });
 
     // get the raw data
-    request(basePath + 'points', { json: true }, function(err, res, body) {
-        L.mapbox.featureLayer(body).addTo(map).eachLayer(function(l) {
-            l.bindPopup('<h2>' + l.feature.properties.speed.toFixed(2) + ' kb/s</h2>');
-        });
-    });
-
-    if (err) console.error(err);
-});
-
-},{"request":"/Users/tmcw/src/turf-server-example/node_modules/request/index.js"}]},{},["/Users/tmcw/src/turf-server-example/public/index.js"]);
-data
     request(basePath + 'points', { json: true }, function(err, res, body) {
         L.mapbox.featureLayer(body).addTo(map).eachLayer(function(l) {
             l.bindPopup('<h2>' + l.feature.properties.speed.toFixed(2) + ' kb/s</h2>');
