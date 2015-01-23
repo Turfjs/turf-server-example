@@ -59,7 +59,16 @@ app.get('/add', function(req, res) {
 });
 
 app.get('/points', function(req, res) {
-    res.send(points);
+    var pts = JSON.parse(JSON.stringify(points));
+    pts.features.forEach(function(f) {
+        f.properties.title = f.properties.speed.toFixed(2) + '/kbs';
+        var s = f.properties.speed;
+        f.properties['marker-color'] = (s > 2000 ? '#d7301f' :
+             (s > 1000 ? '#fc8d59' :
+              (s > 200 ? '#fdcc8a' :
+               '#fef0d9')));
+    });
+    res.send(pts);
 });
 
 app.get('/tin', function(req, res) {

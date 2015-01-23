@@ -22,7 +22,7 @@ request(location.href + 'add', {
     });
 
     request(location.href + 'points', { json: true }, function(err, res, body) {
-        L.geoJson(body).addTo(map).eachLayer(function(l) {
+        L.mapbox.featureLayer(body).addTo(map).eachLayer(function(l) {
             l.bindPopup('<h2>' + l.feature.properties.speed.toFixed(2) + ' kb/s</h2>');
         });
     });
