@@ -13,7 +13,7 @@ for the client-facing code that works with [browserify](http://browserify.org/).
 
 With [Heroku](https://www.heroku.com/), just click the Deply button above.
 
-Otherwise,
+Otherwise:
 
 ```sh
 $ git clone https://github.com/mapbox/turf-server-example.git
