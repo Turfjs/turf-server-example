@@ -31,8 +31,6 @@ request(basePath + 'add', { json: true }, function(err, res, body) {
         })
         .addTo(map);
 
-    map.fitBounds(ownpoint.getBounds());
-
     // get the triangulated version of the current data
     request(basePath + 'tin', { json: true }, function(err, res, body) {
         L.geoJson(body, {
