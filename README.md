@@ -11,7 +11,7 @@ for the client-facing code that works with [browserify](http://browserify.org/).
 
 ## Usage
 
-With [Heroku](https://www.heroku.com/), just click the Deply button above.
+With [Heroku](https://www.heroku.com/), just click the Deploy button above.
 
 Otherwise:
 
