@@ -1,12 +1,9 @@
-var transfer = require('transfer-rate'),
-    express = require('express'),
+var express = require('express'),
     app = express(),
+    hat = require('hat'),
     ss = require('simple-statistics'),
     turf = require('turf'),
     request = require('request');
-
-// The transfer-rate module creates a request wrapper that measures bandwidth
-var rate = transfer({ output: false, reponse: false });
 
 // Dynamically set the port that this application runs on so that Heroku
 // can properly wrap the way that it connects to the outside network
@@ -20,9 +17,28 @@ app.enable('trust proxy');
 // the results of the bandwidth tests.
 var points = { type: 'FeatureCollection', features: [] };
 
+var checks = {};
+
+app.get('/first', function(req, res) {
+    var random_long_string = '';
+    for (i = 0; i < 100; i++) random_long_string += Math.random();
+    var key = hat();
+    checks[key] = +new Date();
+    // ensure that this number is deleted so checks doesn't grow always
+    setTimeout(function() {
+        delete checks[key];
+    }, 1000 * 60);
+    res.send({
+        random: random_long_string,
+        key: key
+    });
+});
+
 // This is the endpoint through which new computers add themselves to the
 // map by downloading a test payload
-app.get('/add', function(req, res) {
+app.get('/add/:key', function(req, res) {
+  var key = req.params.key;
+  var timing = +new Date() - checks[key] || 0;
   var ip = (req.ip === '127.0.0.1') ? '199.188.195.78' : req.ip;
 
   // get the external client IP - this variable is filled because
@@ -50,13 +66,11 @@ app.get('/add', function(req, res) {
               type: 'Point',
               coordinates: [place.body.lon, place.body.lat]
           },
-          properties: { }
+          properties: {
+              speed: timing
+          }
       };
-      res.send({
-          random: random_long_string,
-          self: self
-      });
-      rate(req, start);
+      res.send(self);
       // avoid duplicating results that land in the same exact latitude
       // and longitude position.
       for (i = 0; i < points.features.length; i++) {
@@ -66,8 +80,6 @@ app.get('/add', function(req, res) {
               return;
           }
       }
-      // req.transferRate contains the transfer rate in KB/s
-      self.properties.speed = parseFloat(req.transferRate);
       points.features.push(self);
       if (points.features.length > 1000) points.features.shift();
     } else {
