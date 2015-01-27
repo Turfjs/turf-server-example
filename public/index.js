@@ -49,7 +49,10 @@ xhr({ uri: basePath + 'first', json: true }, function(err, res, body) {
 
         // get the raw data
         xhr({ uri: basePath + 'points', json: true }, function(err, res, body) {
-            L.mapbox.featureLayer(body).addTo(map);
+            var pointLayer = L.mapbox.featureLayer(body).addTo(map);
+            if (body && body.features && body.features.length > 3) {
+                map.fitBounds(pointLayer.getBounds());
+            }
         });
 
         if (err) console.error(err);
