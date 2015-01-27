@@ -6,7 +6,7 @@ var transfer = require('transfer-rate'),
     request = require('request');
 
 // The transfer-rate module creates a request wrapper that measures bandwidth
-var rate = transfer({ output: false });
+var rate = transfer({ output: false, reponse: false });
 
 // Dynamically set the port that this application runs on so that Heroku
 // can properly wrap the way that it connects to the outside network

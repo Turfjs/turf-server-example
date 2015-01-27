@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "watchify public/index.js -o public/bundle.js & node index.js",
-    "build": "browserify public/index.js > public/bundle.js"
+    "build": "browserify public/index.js | uglifyjs -c -m > public/bundle.js"
   },
   "keywords": [
     "turf",
@@ -19,8 +19,8 @@
     "express": "^4.11.1",
     "request": "^2.51.0",
     "simple-statistics": "^0.9.0",
-    "transfer-rate": "^1.0.5",
-    "turf": "^1.3.2"
+    "turf": "^1.3.2",
+    "xhr": "^2.0.1"
   },
   "devDependencies": {
     "browserify": "^8.1.1",

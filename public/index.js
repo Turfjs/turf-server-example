@@ -1,4 +1,4 @@
-var request = require('request');
+var xhr = require('xhr');
 
 if (window.location.search) {
     var overlay = document.getElementById('overlay');
@@ -9,7 +9,7 @@ var basePath = window.location.href.split('?')[0].split('#')[0];
 
 // Add the user to the map and get their current
 // location
-request(basePath + 'add', { json: true }, function(err, res, body) {
+xhr({ uri: basePath + 'add', json: true }, function(err, res, body) {
     L.mapbox.accessToken = 'pk.eyJ1IjoidG1jdyIsImEiOiJIZmRUQjRBIn0.lRARalfaGHnPdRcc-7QZYQ';
     // Create a map in the div #map
     var map = L.mapbox.map('map', 'tmcw.l12c66f2', {
@@ -32,7 +32,7 @@ request(basePath + 'add', { json: true }, function(err, res, body) {
         .addTo(map);
 
     // get the triangulated version of the current data
-    request(basePath + 'tin', { json: true }, function(err, res, body) {
+    xhr({ uri: basePath + 'tin', json: true }, function(err, res, body) {
         L.geoJson(body, {
             style: function(feature) {
                 return {
@@ -47,10 +47,8 @@ request(basePath + 'add', { json: true }, function(err, res, body) {
     });
 
     // get the raw data
-    request(basePath + 'points', { json: true }, function(err, res, body) {
-        L.mapbox.featureLayer(body).addTo(map).eachLayer(function(l) {
-            l.bindPopup('<h2>' + l.feature.properties.speed.toFixed(2) + ' kb/s</h2>');
-        });
+    xhr({ uri: basePath + 'points', json: true }, function(err, res, body) {
+        L.mapbox.featureLayer(body).addTo(map);
     });
 
     if (err) console.error(err);
