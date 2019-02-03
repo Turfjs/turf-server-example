@@ -2,7 +2,7 @@ var express = require('express'),
     app = express(),
     hat = require('hat'),
     ss = require('simple-statistics'),
-    turf = require('turf'),
+    turf = require('@turf/turf'),
     request = require('request');
 
 // Dynamically set the port that this application runs on so that Heroku
@@ -39,23 +39,23 @@ app.get('/first', function(req, res) {
 app.get('/add/:key', function(req, res) {
   var key = req.params.key;
   var timing = +new Date() - checks[key] || 0;
-  var ip = (req.ip === '127.0.0.1') ? '199.188.195.78' : req.ip;
+  var ip = (req.ip === '127.0.0.1' || req.ip === '::1') ? '199.188.195.78' : req.ip;
 
   // get the external client IP - this variable is filled because
   // we enabled 'trust proxy' earlier.
   if (req.ips && req.ips.length) ip = req.ips[0];
 
-  // Use Mapbox for figuring out user locations: in production use,
+  // Use freegeoip for figuring out user locations: in production use,
   // you would want to use MaxMind or another geoip library directly.
-  request('https://www.mapbox.com/api/Location/' + ip, {
+  request('https://freegeoip.net/json/' + ip, {
       json: true
   }, function(err, place) {
     // Check that Mapbox was able to locate the IP address at all
     // before trying to add it to the map.
     if (!err &&
         place.body &&
-        place.body.lat !== undefined &&
-        place.body.lat !== 0) {
+        place.body.latitude !== undefined &&
+        place.body.latitude !== 0) {
       var i;
       var random_long_string = '';
       for (i = 0; i < 100; i++) random_long_string += Math.random();
@@ -64,7 +64,7 @@ app.get('/add/:key', function(req, res) {
           type: 'Feature',
           geometry: {
               type: 'Point',
-              coordinates: [place.body.lon, place.body.lat]
+              coordinates: [place.body.longitude, place.body.latitude]
           },
           properties: {
               speed: timing
@@ -74,8 +74,8 @@ app.get('/add/:key', function(req, res) {
       // avoid duplicating results that land in the same exact latitude
       // and longitude position.
       for (i = 0; i < points.features.length; i++) {
-          if (points.features[i].geometry.coordinates[0] == place.body.lon &&
-              points.features[i].geometry.coordinates[1] == place.body.lat) {
+          if (points.features[i].geometry.coordinates[0] === place.body.longitude &&
+              points.features[i].geometry.coordinates[1] === place.body.latitude) {
               // avoid duplicates
               return;
           }
@@ -84,7 +84,7 @@ app.get('/add/:key', function(req, res) {
       if (points.features.length > 1000) points.features.shift();
     } else {
       console.log(err, place);
-      res.end('done');
+      res.end('err');
     }
   });
 });

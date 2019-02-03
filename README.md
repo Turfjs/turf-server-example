@@ -2,7 +2,7 @@
 
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
 
-Demonstrates using [Turfjs](https://github.com/Turfjs/turf) in a [nodejs](http://nodejs.org/)
+Demonstrates using [Turfjs](http://turfjs.org/) in a [nodejs](http://nodejs.org/)
 [expressjs](http://expressjs.com/) server. Visiting the page will measure your bandwidth, add it to a map,
 and show a TIN of other people's network speeds.
 
@@ -16,7 +16,7 @@ With [Heroku](https://www.heroku.com/), just click the Deploy button above.
 Otherwise:
 
 ```sh
-$ git clone https://github.com/mapbox/turf-server-example.git
+$ git clone https://github.com/Turfjs/turf-server-example.git
 $ cd turf-server-example
 $ npm install
 $ npm start
